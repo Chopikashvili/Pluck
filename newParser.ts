@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as readline from 'readline';
-import { Games } from './gameFinder';
+import { Games, GameInfo } from './gameFinder';
+import { PlayerData } from './getPlayerData';
 
 export type PlayerStats = {
     name: string
@@ -10,18 +11,22 @@ export type PlayerStats = {
     takeaways: number,
     interceptions: number,
     blocks: number,
-    faceoffWins: number
+    faceoffWins: number,
+    faceoffLosses: number,
+    goalsAllowed: number,
+    shotsFaced: number
 }
 
 const actions: string[] = [" takes a shot and scores!", " takes a shot", " hits ", " takes the puck!", "Intercepted by ", " blocks the shot", " wins the faceoff!"]; //list of possible events to be parsed for
+let teamInfo: PlayerData[] = [];
 const seasonStats: PlayerStats[] = []; //where all the player records go
 let gamesParsed: number = 0;
 
 /** Gathers data from the game log and then passes it to processInput.
  * @param gamePath - path to the game log
  */
-function readGame(gamePath: string): void { //requires processInput, seasonStats, gamesParsed, actions
-    const rs = fs.createReadStream(gamePath, 'utf-8');
+function readGame(game: GameInfo): void { //requires processInput, seasonStats, gamesParsed, actions
+    const rs = fs.createReadStream(game.path + '/log.txt', 'utf-8');
     rs.on("data", (chunk) => {});
     const rl = readline.createInterface(rs);
     rl.on("line", (input) => {
@@ -31,16 +36,16 @@ function readGame(gamePath: string): void { //requires processInput, seasonStats
         }
         //console.log(input);
         //console.log(eventCodes);
-        if (eventCodes.length != 0) processInput(input, eventCodes);
+        if (eventCodes.length != 0) processInput(input, eventCodes, game);
     });
     rl.on("close", () => {
         gamesParsed++;
         if (gamesParsed == 1140) {
             const output = JSON.stringify(seasonStats.sort((a, b) => a.name > b.name ? 1 : -1));
-            /*fs.writeFile('season1.json', output, 'utf-8', (err) => {
+            fs.writeFile('json/season2.json', output, 'utf-8', (err) => {
                 if (err) throw err;
-            })*/
-            console.log(output);
+            })
+            //console.log(output);
         }
     });
 }
@@ -49,7 +54,7 @@ function readGame(gamePath: string): void { //requires processInput, seasonStats
  * @param input - The game event
  * @param eventCodes - Things that happened during the game event
  */
-function processInput(input: string, eventCodes: number[]): void { //requires addPlayerRecord, incrementPlayerStat
+function processInput(input: string, eventCodes: number[], game: GameInfo): void { //requires addPlayerRecord, incrementPlayerStat
     const inputWords: string[] = input.split(' ');
     if (eventCodes[0] == 4) {
         const playerName4 = inputWords.at(-2) + ' ' + inputWords.at(-1).substring(0, inputWords.at(-1).length - 1);
@@ -57,6 +62,29 @@ function processInput(input: string, eventCodes: number[]): void { //requires ad
         addPlayerRecord(playerName4);
         incrementPlayerStat(playerName4, 3); //interception is also a takeaway
         incrementPlayerStat(playerName4, 4); //special case needed: non-standard name placement
+    }
+    else if (eventCodes.indexOf(1) != -1) {
+        const shooterName1 = inputWords[0] + ' ' + inputWords[1];
+        const shooterTeam1: string = teamInfo.find((value) => value.name == shooterName1).team;
+        const goalieTeam1: string = getOppoTeam(shooterTeam1, game);
+        const goalieName1 = teamInfo.find((value) => value.team == goalieTeam1 && value.position == 'G').name;
+        addPlayerRecord(shooterName1);
+        for (let code of eventCodes) {
+           incrementPlayerStat(shooterName1, code);
+        }
+        addPlayerRecord(goalieName1);
+        if (eventCodes.indexOf(0) != -1) incrementPlayerStat(goalieName1, 8);
+        incrementPlayerStat(goalieName1, 9);
+    }
+    else if (eventCodes.indexOf(6) != -1) {
+        const winningCenter6 = inputWords[0] + ' ' + inputWords[1];
+        const winningCenterTeam6: string = teamInfo.find((value) => value.name == winningCenter6).team;
+        const losingCenterTeam6: string = getOppoTeam(winningCenterTeam6, game);
+        const losingCenter6 = teamInfo.find((value) => value.team == losingCenterTeam6 && value.position == 'C').name;
+        addPlayerRecord(winningCenter6);
+        incrementPlayerStat(winningCenter6, 6);
+        addPlayerRecord(losingCenter6);
+        incrementPlayerStat(losingCenter6, 7);
     }
     else {
         const playerName = inputWords[0] + ' ' + inputWords[1];
@@ -80,7 +108,10 @@ function addPlayerRecord(playerName: string): void { //requires seasonStats
         takeaways: 0,
         interceptions: 0,
         blocks: 0,
-        faceoffWins: 0
+        faceoffWins: 0,
+        faceoffLosses: 0,
+        goalsAllowed: 0,
+        shotsFaced: 0
     });
 }
 
@@ -111,18 +142,38 @@ function incrementPlayerStat(playerName: string, statCode: number): void { //req
             break;
         case 6:
             seasonStats[index].faceoffWins++;
-            break; //I'm so sorry
+            break; 
+        case 7: 
+            seasonStats[index].faceoffLosses++;
+            break;
+        case 8:
+            seasonStats[index].goalsAllowed++;
+            break;
+        case 9:
+            seasonStats[index].shotsFaced++;
+            break;//it got worse
     }
 }
 
+function getOppoTeam(team: string, game: GameInfo): string {
+    return team == game.homeTeam ? game.awayTeam : game.homeTeam;
+}
+
 async function getSeasonStats() {
-    fs.readFile('json/season2games.json', 'utf-8', (err, data) => {
+    fs.readFile('json/season2teams.json', 'utf-8', (err, data) => {
         if (err) {
             console.log(err);
             return;
         }
-        const parsedData: Games = JSON.parse(data);
-        for (let game of Object.values(parsedData)) readGame(game.path + '/log.txt');
+        teamInfo = JSON.parse(data);
+        fs.readFile('json/season2games.json', 'utf-8', (err, data) => {
+            if (err) {
+                console.log(err);
+                return;
+            }
+            const parsedData: Games = JSON.parse(data);
+            for (let game of Object.values(parsedData)) readGame(game);
+        });
     });
 }
 
