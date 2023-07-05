@@ -13,8 +13,8 @@ export type PlayerStats = {
     faceoffWins: number
 }
 
-const actions: string[] = [" takes a shot... and scores!", " takes a shot", " hits ", " takes the puck!", " intercepted by ", " blocks the shot", " wins the faceoff!"]; //list of possible events to be parsed for
-const seasonStats: PlayerStats[] = [{name: 'Player Playerton', goals: 0, shots: 0, hits: 0, takeaways: 0, interceptions: 0, blocks: 0, faceoffWins: 0}]; //where all the player records go
+const actions: string[] = [" takes a shot and scores!", " takes a shot", " hits ", " takes the puck!", "Intercepted by ", " blocks the shot", " wins the faceoff!"]; //list of possible events to be parsed for
+const seasonStats: PlayerStats[] = []; //where all the player records go
 let gamesParsed: number = 0;
 
 /** Gathers data from the game log and then passes it to processInput.
@@ -36,7 +36,7 @@ function readGame(gamePath: string): void { //requires processInput, seasonStats
     rl.on("close", () => {
         gamesParsed++;
         if (gamesParsed == 1140) {
-            const output = JSON.stringify(seasonStats.filter((value) => value.name != 'Player Playerton').sort((a, b) => a.name > b.name ? 1 : -1));
+            const output = JSON.stringify(seasonStats.sort((a, b) => a.name > b.name ? 1 : -1));
             /*fs.writeFile('season1.json', output, 'utf-8', (err) => {
                 if (err) throw err;
             })*/
