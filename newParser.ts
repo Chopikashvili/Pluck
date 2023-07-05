@@ -56,30 +56,7 @@ function processInput(input: string, eventCodes: number[]): void { //requires ad
         //console.log(playerName4);
         addPlayerRecord(playerName4);
         incrementPlayerStat(playerName4, 3); //interception is also a takeaway
-        incrementPlayerStat(playerName4, 4); //special case needed: non-standard name placeme
-    }
-    else if (eventCodes[0] == 1 && eventCodes[1] == 5) {
-        const shooterName15 = inputWords[0] + ' ' + inputWords[1];
-        const blockerIndex15 = inputWords.indexOf('shot...') + 1;
-        const blockerName15 = inputWords[blockerIndex15] + ' ' + inputWords[blockerIndex15 + 1];
-        //console.log(shooterName15);
-        //console.log(blockerName15);
-        addPlayerRecord(shooterName15);
-        incrementPlayerStat(shooterName15, 1);
-        addPlayerRecord(blockerName15);
-        incrementPlayerStat(blockerName15, 5); //special case needed: two players
-    }
-    else if (eventCodes[0] == 1 && eventCodes[1] == 3) {
-        const shooterName135 = inputWords[0] + ' ' + inputWords[1];
-        const blockerIndex135 = inputWords.indexOf('shot...') + 1;
-        const blockerName135 = inputWords[blockerIndex135] + ' ' + inputWords[blockerIndex135 + 1];
-        //console.log(shooterName135);
-        //console.log(blockerName135);
-        addPlayerRecord(shooterName135);
-        incrementPlayerStat(shooterName135, 1);
-        addPlayerRecord(blockerName135);
-        incrementPlayerStat(blockerName135, 3);
-        incrementPlayerStat(blockerName135, 5); //special case needed: two players
+        incrementPlayerStat(playerName4, 4); //special case needed: non-standard name placement
     }
     else {
         const playerName = inputWords[0] + ' ' + inputWords[1];
@@ -139,7 +116,7 @@ function incrementPlayerStat(playerName: string, statCode: number): void { //req
 }
 
 async function getSeasonStats() {
-    fs.readFile('season1games.json', 'utf-8', (err, data) => {
+    fs.readFile('json/season2games.json', 'utf-8', (err, data) => {
         if (err) {
             console.log(err);
             return;
