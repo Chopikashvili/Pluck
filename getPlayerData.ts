@@ -9,7 +9,6 @@ export type PlayerData = {
     agility: number
 }
 
-const teams: string[] = [];
 const positions: string[] = ['LW', 'C', 'RW', 'LD', 'G', 'RD']
 
 /**
@@ -23,7 +22,6 @@ async function getPlayerData(season: number): Promise<void> {
         const path = `../Downloads/hlockeyarchive3/Season ${season.toString()}/Divisions/${division}`;
         const files = await fs.readdir(path) //list of teams
         for (let team of files) {
-            teams.push(team);
             const data = await fs.readFile(path + '/' + team, 'utf-8'); //data of each team
             const splitData = data.split('\n');
             for (let i = 1; i < splitData.length - 1; i += 4) {
@@ -36,7 +34,7 @@ async function getPlayerData(season: number): Promise<void> {
                     agility: Number.parseFloat(splitData[i + 3].substring(splitData[i + 3].indexOf(':') + 2))
                 });
                 playersParsed++;
-                if (playersParsed == 120) await fs.writeFile('json/season1teams.json', JSON.stringify(players), 'utf-8');
+                if (playersParsed == 120) await fs.writeFile(`json/season${season.toString()}teams.json`, JSON.stringify(players), 'utf-8');
             }
         }
     }
