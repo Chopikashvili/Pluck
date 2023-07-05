@@ -139,7 +139,7 @@ function incrementPlayerStat(playerName: string, statCode: number): void { //req
 }
 
 async function getSeasonStats() {
-    fs.readFile('season1games.json', 'utf-8', (err, data) => {
+    fs.readFile('json/season1games.json', 'utf-8', (err, data) => {
         if (err) {
             console.log(err);
             return;
