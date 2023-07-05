@@ -7,4 +7,4 @@
 * Make team stats
 * Assign homeTeam and awayTeam properties to games (done)
 * Make new parser
-* Publish to GitHub
+* Publish to GitHub (done)
