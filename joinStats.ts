@@ -53,7 +53,7 @@ function joinStats(jsonStats: string, jsonData: string): string {
 async function joiner(season: number): Promise<void> {
     const season1: string = await fs.readFile(`json/season${season.toString()}.json`, 'utf-8');
     const season1teams: string = await fs.readFile(`json/season${season.toString()}teams.json`, 'utf-8');
-    await fs.writeFile(`json/season${season}joined.json`, joinStats(season1, season1teams), 'utf-8');
+    await fs.writeFile(`json/season${season.toString()}joined.json`, joinStats(season1, season1teams), 'utf-8');
 }
 
 joiner(2);
