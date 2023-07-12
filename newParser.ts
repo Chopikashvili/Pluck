@@ -17,15 +17,15 @@ export type PlayerStats = {
     shotsFaced: number
 }
 
-const actions: string[] = [" takes a shot and scores!", " takes a shot", " hits ", " takes the puck!", "Intercepted by ", " blocks the shot", " wins the faceoff!"]; //list of possible events to be parsed for
 let teamInfo: PlayerData[] = [];
 const seasonStats: PlayerStats[] = []; //where all the player records go
-let gamesParsed: number = 0;
 
 /** Gathers data from the game log and then passes it to processInput.
  * @param gamePath - path to the game log
  */
 function readGame(game: GameInfo): void { //requires processInput, seasonStats, gamesParsed, actions
+    const actions: string[] = [" takes a shot and scores!", " takes a shot", " hits ", " takes the puck!", "Intercepted by ", " blocks the shot", " wins the faceoff!"]; //list of possible events to be parsed for
+    let gamesParsed: number = 0;
     const rs = fs.createReadStream(game.path + '/log.txt', 'utf-8');
     rs.on("data", (chunk) => {});
     const rl = readline.createInterface(rs);
