@@ -25,18 +25,23 @@ const seasonStats: PlayerStats[] = []; //where all the player records go
  */
 function readGame(game: GameInfo): void { //requires processInput, seasonStats, gamesParsed, actions
     const actions: string[] = [" takes a shot and scores!", " takes a shot", " hits ", " takes the puck!", "Intercepted by ", " blocks the shot", " wins the faceoff!"]; //list of possible events to be parsed for
+    const changes: string[] = [" washed away ", "chickened out!", "rest of the season", "rest of the game"]
     let gamesParsed: number = 0;
     const rs = fs.createReadStream(game.path + '/log.txt', 'utf-8');
     rs.on("data", (chunk) => {});
     const rl = readline.createInterface(rs);
     rl.on("line", (input) => {
         const eventCodes: number[] = [];
+        const changeCodes: number[] = [];
         for (let i = 0; i < 7; i++) {
             if (input.indexOf(actions[i]) != -1) eventCodes.push(i);
         }
+        for (let i = 0; i < 4; i++) {
+            if (input.indexOf(changes[i]) != -1) changeCodes.push(i);
+        }
         //console.log(input);
         //console.log(eventCodes);
-        if (eventCodes.length != 0) processInput(input, eventCodes, game);
+        if (eventCodes.length != 0) processInput(input, eventCodes, changeCodes, game);
     });
     rl.on("close", () => {
         gamesParsed++;
@@ -54,7 +59,7 @@ function readGame(game: GameInfo): void { //requires processInput, seasonStats, 
  * @param input - The game event
  * @param eventCodes - Things that happened during the game event
  */
-function processInput(input: string, eventCodes: number[], game: GameInfo): void { //requires addPlayerRecord, incrementPlayerStat
+function processInput(input: string, eventCodes: number[], changeCodes: number[], game: GameInfo): void { //requires addPlayerRecord, incrementPlayerStat
     const inputWords: string[] = input.split(' ');
     if (eventCodes[0] == 4) {
         const playerName4 = inputWords.at(-2) + ' ' + inputWords.at(-1).substring(0, inputWords.at(-1).length - 1);
@@ -94,6 +99,10 @@ function processInput(input: string, eventCodes: number[], game: GameInfo): void
            incrementPlayerStat(playerName, code);
         }
     }
+    if (changeCodes[0] == 2) {
+        const playerName = inputWords[0] + ' ' + inputWords[1];
+        addPlayerRecordToBeginning(playerName);
+    }
 }
 
 /** Checks if a player is represented in seasonStats, and if they're not, adds a record.
@@ -101,6 +110,22 @@ function processInput(input: string, eventCodes: number[], game: GameInfo): void
  */
 function addPlayerRecord(playerName: string): void { //requires seasonStats
     if (seasonStats.filter((value) => value.name == playerName).length == 0) seasonStats.push({
+        name: playerName,
+        goals: 0,
+        shots: 0,
+        hits: 0,
+        takeaways: 0,
+        interceptions: 0,
+        blocks: 0,
+        faceoffWins: 0,
+        faceoffLosses: 0,
+        goalsAllowed: 0,
+        shotsFaced: 0
+    });
+}
+
+function addPlayerRecordToBeginning(playerName: string): void { //requires seasonStats
+    if (seasonStats.filter((value) => value.name == playerName).length == 0) seasonStats.unshift({
         name: playerName,
         goals: 0,
         shots: 0,
