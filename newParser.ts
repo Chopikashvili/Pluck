@@ -19,6 +19,9 @@ export type PlayerStats = {
 
 let teamInfo: PlayerData[] = [];
 const seasonStats: PlayerStats[] = []; //where all the player records go
+let latestWavesReplaced: PlayerData;
+let latestChickenReplaced: PlayerData;
+let gamesParsed: number = 0;
 
 /** Gathers data from the game log and then passes it to processInput.
  * @param gamePath - path to the game log
@@ -26,7 +29,6 @@ const seasonStats: PlayerStats[] = []; //where all the player records go
 function readGame(game: GameInfo): void { //requires processInput, seasonStats, gamesParsed, actions
     const actions: string[] = [" takes a shot and scores!", " takes a shot", " hits ", " takes the puck!", "Intercepted by ", " blocks the shot", " wins the faceoff!"]; //list of possible events to be parsed for
     const changes: string[] = [" washed away ", "chickened out!", "rest of the season", "rest of the game"]
-    let gamesParsed: number = 0;
     const rs = fs.createReadStream(game.path + '/log.txt', 'utf-8');
     rs.on("data", (chunk) => {});
     const rl = readline.createInterface(rs);
@@ -41,15 +43,21 @@ function readGame(game: GameInfo): void { //requires processInput, seasonStats, 
         }
         //console.log(input);
         //console.log(eventCodes);
-        if (eventCodes.length != 0) processInput(input, eventCodes, changeCodes, game);
+        if (eventCodes.length != 0 || changeCodes.length != 0)processInput(input, eventCodes, changeCodes, game);
     });
     rl.on("close", () => {
         gamesParsed++;
+        console.log(gamesParsed);
+        teamInfo.sort((a, b) => a.isChickenReplacement - b.isChickenReplacement);
         if (gamesParsed == 1140) {
             const output = JSON.stringify(seasonStats.sort((a, b) => a.name > b.name ? 1 : -1));
-            fs.writeFile('json/season2.json', output, 'utf-8', (err) => {
+            const teams = JSON.stringify(teamInfo);
+            fs.writeFile('json/season3.json', output, 'utf-8', (err) => {
                 if (err) throw err;
-            })
+            });
+            fs.writeFile('json/season3teamsfull.json', teams, 'utf-8', (err) => {
+                if (err) throw err;
+            });
             //console.log(output);
         }
     });
@@ -99,13 +107,25 @@ function processInput(input: string, eventCodes: number[], changeCodes: number[]
            incrementPlayerStat(playerName, code);
         }
     }
-    if (changeCodes[0] == 2) {
+    if (changeCodes[0] == 0) {
         const playerName = inputWords[0] + ' ' + inputWords[1];
-        addPlayerRecordToBeginning(playerName);
+        latestWavesReplaced = teamInfo.find((value) => value.name == playerName);
+    }
+    else if (changeCodes[0] == 2) {
+        const playerName = inputWords[0] + ' ' + inputWords[1];
+        addPlayerRecordWaves(playerName);
+    }
+    else if (changeCodes[0] == 1) {
+        const playerName = inputWords[0] + ' ' + inputWords[1];
+        latestChickenReplaced = teamInfo.find((value) => value.name == playerName);
+    }
+    else if (changeCodes[0] == 3) {
+        const playerName = inputWords[0] + ' ' + inputWords[1];
+        addPlayerRecordChicken(playerName);
     }
 }
 
-/** Checks if a player is represented in seasonStats, and if they're not, adds a record.
+/** Checks if a wave replacement is represented in teamInfo, and if they're not, adds a record.
  * @param playerName - name of the player.
  */
 function addPlayerRecord(playerName: string): void { //requires seasonStats
@@ -124,8 +144,9 @@ function addPlayerRecord(playerName: string): void { //requires seasonStats
     });
 }
 
-function addPlayerRecordToBeginning(playerName: string): void { //requires seasonStats
-    if (seasonStats.filter((value) => value.name == playerName).length == 0) seasonStats.unshift({
+function addPlayerRecordWaves(playerName: string): void {
+    if (teamInfo.filter((value) => value.name == playerName).length == 0) {
+        seasonStats.push({
         name: playerName,
         goals: 0,
         shots: 0,
@@ -137,7 +158,31 @@ function addPlayerRecordToBeginning(playerName: string): void { //requires seaso
         faceoffLosses: 0,
         goalsAllowed: 0,
         shotsFaced: 0
-    });
+        });
+        teamInfo.unshift({
+            name: playerName,
+            team: latestWavesReplaced.team,
+            position: latestWavesReplaced.position,
+            offense: 0,
+            defense: 0,
+            agility: 0,
+            isChickenReplacement: 0
+        });
+    }
+}
+
+function addPlayerRecordChicken(playerName: string) {
+    if (teamInfo.filter((value) => value.name == playerName).length == 0) {
+        teamInfo.unshift({
+            name: playerName,
+            team: latestChickenReplaced.team,
+            position: latestChickenReplaced.position,
+            offense: 0,
+            defense: 0,
+            agility: 0,
+            isChickenReplacement: 1
+        });
+    }
 }
 
 /** Makes the necessary stat go up by one.
@@ -185,13 +230,13 @@ function getOppoTeam(team: string, game: GameInfo): string {
 }
 
 async function getSeasonStats() {
-    fs.readFile('json/season2teams.json', 'utf-8', (err, data) => {
+    fs.readFile('json/season3teams.json', 'utf-8', (err, data) => {
         if (err) {
             console.log(err);
             return;
         }
         teamInfo = JSON.parse(data);
-        fs.readFile('json/season2games.json', 'utf-8', (err, data) => {
+        fs.readFile('json/season3games.json', 'utf-8', (err, data) => {
             if (err) {
                 console.log(err);
                 return;

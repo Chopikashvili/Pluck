@@ -6,7 +6,8 @@ export type PlayerData = {
     position: string
     offense: number,
     defense: number,
-    agility: number
+    agility: number,
+    isChickenReplacement: number
 }
 
 const positions: string[] = ['LW', 'C', 'RW', 'LD', 'G', 'RD']
@@ -31,7 +32,8 @@ async function getPlayerData(season: number): Promise<void> {
                     position: positions[(i / 4 - (i % 4) / 4)],
                     offense: Number.parseFloat(splitData[i + 1].substring(splitData[i + 1].indexOf(':') + 2)),
                     defense: Number.parseFloat(splitData[i + 2].substring(splitData[i + 2].indexOf(':') + 2)),
-                    agility: Number.parseFloat(splitData[i + 3].substring(splitData[i + 3].indexOf(':') + 2))
+                    agility: Number.parseFloat(splitData[i + 3].substring(splitData[i + 3].indexOf(':') + 2)),
+                    isChickenReplacement: 0
                 });
                 playersParsed++;
                 if (playersParsed == 120) await fs.writeFile(`json/season${season.toString()}teams.json`, JSON.stringify(players), 'utf-8');
@@ -40,4 +42,4 @@ async function getPlayerData(season: number): Promise<void> {
     }
 }
 
-getPlayerData(2);
+getPlayerData(3);
