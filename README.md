@@ -13,3 +13,7 @@ Pluck is a parser and stat compiler for [Hlockey](https://hlockey.onrender.com/)
 ## What am I planning to do with this?
 
 This can be found in todo.md!
+
+## Why is there only one branch???
+
+I actually do development with multiple branches, but I merge them before pushing.
