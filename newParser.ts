@@ -47,17 +47,15 @@ function readGame(game: GameInfo): void { //requires processInput, seasonStats, 
     });
     rl.on("close", () => {
         gamesParsed++;
-        console.log(gamesParsed);
-        teamInfo.sort((a, b) => a.isChickenReplacement - b.isChickenReplacement);
         if (gamesParsed == 1140) {
             const output = JSON.stringify(seasonStats.sort((a, b) => a.name > b.name ? 1 : -1));
             const teams = JSON.stringify(teamInfo);
             fs.writeFile('json/season3.json', output, 'utf-8', (err) => {
                 if (err) throw err;
             });
-            fs.writeFile('json/season3teamsfull.json', teams, 'utf-8', (err) => {
+            /*fs.writeFile('json/season3teamsfull.json', teams, 'utf-8', (err) => {
                 if (err) throw err;
-            });
+            });*/
             //console.log(output);
         }
     });
@@ -118,6 +116,7 @@ function processInput(input: string, eventCodes: number[], changeCodes: number[]
     else if (changeCodes[0] == 1) {
         const playerName = inputWords[0] + ' ' + inputWords[1];
         latestChickenReplaced = teamInfo.find((value) => value.name == playerName);
+        teamInfo.sort((a, b) => a.isChickenReplacement - b.isChickenReplacement);
     }
     else if (changeCodes[0] == 3) {
         const playerName = inputWords[0] + ' ' + inputWords[1];
