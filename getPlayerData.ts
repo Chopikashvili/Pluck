@@ -7,7 +7,7 @@ export type PlayerData = {
     offense: number,
     defense: number,
     agility: number,
-    isChickenReplacement: number
+    isActive: number
 }
 
 const positions: string[] = ['LW', 'C', 'RW', 'LD', 'G', 'RD']
@@ -20,7 +20,7 @@ async function getPlayerData(season: number): Promise<void> {
     const players: PlayerData[] = [];
     let playersParsed: number = 0; //counts how many players are parsed
     for (let division of ['Dry Cool', 'Dry Warm', 'Wet Cool', 'Wet Warm']) {
-        const path = `../Downloads/hlockeyarchive3/Season ${season.toString()}/Divisions/${division}`;
+        const path = `../Downloads/hlockeyarchive4/Season ${season.toString()}/Divisions/${division}`;
         const files = await fs.readdir(path) //list of teams
         for (let team of files) {
             const data = await fs.readFile(path + '/' + team, 'utf-8'); //data of each team
@@ -33,7 +33,7 @@ async function getPlayerData(season: number): Promise<void> {
                     offense: Number.parseFloat(splitData[i + 1].substring(splitData[i + 1].indexOf(':') + 2)),
                     defense: Number.parseFloat(splitData[i + 2].substring(splitData[i + 2].indexOf(':') + 2)),
                     agility: Number.parseFloat(splitData[i + 3].substring(splitData[i + 3].indexOf(':') + 2)),
-                    isChickenReplacement: 0
+                    isActive: 1
                 });
                 playersParsed++;
                 if (playersParsed == 120) await fs.writeFile(`json/season${season.toString()}teams.json`, JSON.stringify(players), 'utf-8');
@@ -42,4 +42,4 @@ async function getPlayerData(season: number): Promise<void> {
     }
 }
 
-getPlayerData(3);
+getPlayerData(4);

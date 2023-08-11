@@ -5,7 +5,6 @@ import { PlayerData } from './getPlayerData';
 export type PlayerJoined = {
     name: string,
     team: string,
-    position: string,
     goals: number,
     shots: number,
     shootingPct: number,
@@ -38,7 +37,6 @@ function joinStats(jsonStats: string, jsonData: string): string {
         else deserJoined.push({
             name: valueData.name,
             team: valueData.team,
-            position: valueData.position,
             goals: valueStats.goals,
             shots: valueStats.shots,
             shootingPct: valueStats.goals / valueStats.shots,
@@ -66,4 +64,4 @@ async function joiner(season: number): Promise<void> {
     await fs.writeFile(`json/season${season.toString()}joined.json`, joinStats(stats, teams), 'utf-8');
 }
 
-joiner(3);
+joiner(4);

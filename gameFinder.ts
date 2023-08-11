@@ -15,6 +15,7 @@ export type Games = {
 
 /**
  * Parses a season of Hlockey and constructs a games object.
+ * @param season The season number.
  * @returns the games object inside a promise.
  */
 export async function constructGames(season: number): Promise<Games> {
@@ -22,7 +23,7 @@ export async function constructGames(season: number): Promise<Games> {
     let basePath: string;
     for (let i = 1; i <= 38; i++) {
         for (let j = 1; j <= 3; j++) {
-            basePath = `../Downloads/hlockeyarchive3/Season ${season.toString()}/Day ${i < 10 ? ('0' + i.toString()) : i.toString()}/Round ${j.toString()}`;
+            basePath = `../Downloads/hlockeyarchive4/Season ${season.toString()}/Day ${i < 10 ? ('0' + i.toString()) : i.toString()}/Round ${j.toString()}`;
             let files: string[];
             try {
                 files = await fs.readdir(basePath); //reads every game from the round
@@ -52,14 +53,14 @@ export async function constructGames(season: number): Promise<Games> {
  * Logs the first game of constructGames
  */
 async function logger(): Promise<void> {
-    const games: Games = await constructGames(3);
+    const games: Games = await constructGames(4);
     console.log(games['d1r1g1']);
 }
 /**
  * Writes the result of constructGames to a JSON file
  */
 async function writer(): Promise<void> {
-    fs.writeFile('json/season3games.json', JSON.stringify(await constructGames(3)));
+    fs.writeFile('json/season4games.json', JSON.stringify(await constructGames(4)));
 }
 
 writer();

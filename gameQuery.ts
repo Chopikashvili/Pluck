@@ -14,4 +14,4 @@ async function gameQuery(season: number, key: string, value: string): Promise<vo
     }
 }
 
-gameQuery(3, 'weather', 'Waves');
+gameQuery(4, 'weather', 'Audacity');
